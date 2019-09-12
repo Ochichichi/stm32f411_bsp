@@ -31,14 +31,7 @@ extern "C" {
 #include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
-typedef enum
-{
-  LED4 = 0,
-  LED3 = 1,
-  LED5 = 2,
-  LED6 = 3
-}Led_TypeDef;
-
+#include "log.h"
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -50,42 +43,6 @@ void Error_Handler(void);
 /** @defgroup __STM32F411E_DISCOVERY_HLOW_LEVEL_LED STM32F411E DISCOVERY HLOW LEVEL LED
   * @{
   */
-#define LEDn                                    4
-
-#define LED4_PIN                                GPIO_PIN_12
-#define LED4_GPIO_PORT                          GPIOD
-#define LED4_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED4_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOD_CLK_DISABLE()
-
-
-#define LED3_PIN                                GPIO_PIN_13
-#define LED3_GPIO_PORT                          GPIOD
-#define LED3_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED3_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOD_CLK_DISABLE()
-
-
-#define LED5_PIN                                GPIO_PIN_14
-#define LED5_GPIO_PORT                          GPIOD
-#define LED5_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED5_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOD_CLK_DISABLE()
-
-
-#define LED6_PIN                                GPIO_PIN_15
-#define LED6_GPIO_PORT                          GPIOD
-#define LED6_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED6_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOD_CLK_DISABLE()
-
-#define LEDx_GPIO_CLK_ENABLE(__INDEX__) do{if((__INDEX__) == 0) LED4_GPIO_CLK_ENABLE(); else \
-                                           if((__INDEX__) == 1) LED3_GPIO_CLK_ENABLE(); else \
-                                           if((__INDEX__) == 2) LED5_GPIO_CLK_ENABLE(); else \
-                                           if((__INDEX__) == 3) LED6_GPIO_CLK_ENABLE(); \
-                                           }while(0)
-
-#define LEDx_GPIO_CLK_DISABLE(__INDEX__) do{if((__INDEX__) == 0) LED4_GPIO_CLK_DISABLE(); else \
-                                            if((__INDEX__) == 1) LED3_GPIO_CLK_DISABLE(); else \
-                                            if((__INDEX__) == 2) LED5_GPIO_CLK_DISABLE(); else \
-                                            if((__INDEX__) == 3) LED6_GPIO_CLK_DISABLE(); \
-                                            }while(0)
 
 #define DATA_Ready_Pin GPIO_PIN_2
 #define DATA_Ready_GPIO_Port GPIOE
