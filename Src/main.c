@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -16,7 +15,6 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -31,8 +29,7 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 SPI_HandleTypeDef hspi1;
-extern UART_HandleTypeDef huart2;
-uint8_t buffer[10] = "hello\n";
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_I2C1_Init(void);
@@ -60,10 +57,10 @@ int main(void)
     MX_I2C1_Init();
     MX_SPI1_Init();
 
-    printf("Welcome to IMU Project\n");
-    /* Infinite loop */
-    while(1)
-    {
+    log_info("STM32F411 BSP\r\n");
+
+    while(1) {
+
     }
 }
 
