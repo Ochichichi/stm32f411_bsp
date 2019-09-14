@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* Private includes ----------------------------------------------------------*/
+#include "IMU.h"
+
 #include <stdio.h>
 /* Private typedef -----------------------------------------------------------*/
 
@@ -27,11 +29,10 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-SPI_HandleTypeDef hspi1;
-
+int16_t accData[3];
+__IO uint8_t flag_ms = RESET;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -51,13 +52,21 @@ int main(void)
 
     /* Initialize all configured peripherals */
     log_init();
+    log_info("Configured Serial Port ---> USART2\r\n");
 
-    MX_SPI1_Init();
-
-    log_info("STM32F411 BSP\r\n");
+    /* Init on-board AccelMag */
+    log_info("Initializing Accelerometer ---> LSM303DLHC Sensor\r\n");
+    BSP_Accelero_Init();
 
     while(1) {
-
+        BSP_Accelero_GetXYZ(accData);
+        if(flag_ms == SET)
+        {
+            log_debug("accX: %d\r\n", accData[0]);
+            log_debug("accY: %d\r\n", accData[1]);
+            log_debug("accZ: %d\r\n", accData[2]);
+            flag_ms = RESET;
+        }
     }
 }
 
@@ -103,32 +112,6 @@ void SystemClock_Config(void)
     }
 }
 
-
-/**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-    /* SPI1 parameter configuration */
-    hspi1.Instance = SPI1;
-    hspi1.Init.Mode = SPI_MODE_MASTER;
-    hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-    hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi1.Init.NSS = SPI_NSS_SOFT;
-    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi1.Init.CRCPolynomial = 10;
-    if (HAL_SPI_Init(&hspi1) != HAL_OK)
-    {
-      Error_Handler();
-    }
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

@@ -8,7 +8,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "lsm303dlhc.h"
 
-/* Map functions pointer */
+/* Mapping functions pointer */
 ACCELERO_DrvTypeDef Lsm303dlhcDrv =
 {
     LSM303DLHC_AccInit,

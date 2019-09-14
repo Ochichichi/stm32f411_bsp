@@ -22,45 +22,26 @@
 #include "main.h"
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-/* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN TD */
-
-/* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
- 
-/* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
 
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
+__IO uint32_t counterOs;
+extern __IO uint8_t flag_ms;
 
 /* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 
-/* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef huart2;
-
-/* USER CODE BEGIN EV */
-
-/* USER CODE END EV */
 
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */ 
@@ -182,13 +163,14 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  /* USER CODE BEGIN SysTick_IRQn 0 */
+    HAL_IncTick();
 
-  /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
+    counterOs++;
+    if(counterOs == 500) // 500ms
+    {
+        flag_ms = SET;
+        counterOs = 0;
+    }
 }
 
 /******************************************************************************/
@@ -206,6 +188,6 @@ void SysTick_Handler(void)
   */
 void USARTx_IRQHandler(void)
 {
-  HAL_UART_IRQHandler(&huart2);
+    HAL_UART_IRQHandler(&huart2);
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
