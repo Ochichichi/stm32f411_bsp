@@ -33,6 +33,11 @@ void log_init(void)
     }
 }
 
+/**
+  * @brief Rewrite printf function
+  * @param None
+  * @retval None
+  */
 int _write(int fd, char * str, int len)
 {
     HAL_UART_Transmit(&huart2, (uint8_t*)str, len , 100);
