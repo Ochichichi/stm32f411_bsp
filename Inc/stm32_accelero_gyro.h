@@ -4,6 +4,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+// ACCELEROMETER
 // ACCELERO I2C1 Interface pins
 #define ACCELERO_DRDY_GPIO_PORT                 GPIOE                       /* GPIOE */
 #define ACCELERO_DRDY_GPIO_CLK_ENABLE()         __HAL_RCC_GPIOE_CLK_ENABLE() 
@@ -40,7 +41,8 @@
 #define I2Cx_TIMEOUT_MAX                        0xA000 /*<! The value of the maximal timeout for I2C waiting loops */
 #define I2Cx_MAX_COMMUNICATION_FREQ             ((uint32_t) 100000)
 
-// SPI
+// GYROSCOPE
+// SPI bus
 #define GYRO_SPIx                          SPI1
 #define GYRO_SPIx_CLOCK_ENABLE()           __HAL_RCC_SPI1_CLK_ENABLE()
 #define GYRO_SPIx_GPIO_PORT                GPIOA                      /* GPIOA */
@@ -51,7 +53,31 @@
 #define GYRO_SPIx_MISO_PIN                 GPIO_PIN_6                 /* PA.06 */
 #define GYRO_SPIx_MOSI_PIN                 GPIO_PIN_7                 /* PA.07 */
 
-/* SPI timeout max */
-#define SPIx_TIMEOUT_MAX                        ((uint32_t)0x1000)
+// SPI timeout max
+#define SPIx_TIMEOUT_MAX                ((uint32_t)0x1000)
 
+// Read/Write command
+#define READWRITE_CMD                   ((uint8_t)0x80)
+// Multiple byte read/write command
+#define MULTIPLEBYTE_CMD                ((uint8_t)0x40)
+// Dummy byte
+#define DUMMY_BYTE                      ((uint8_t)0x00)
+
+// Chip Select marco definition
+#define GYRO_CS_LOW()   HAL_GPIO_WritePin(GYRO_CS_GPIO_PORT, GYRO_CS_PIN, GPIO_PIN_RESET)
+#define GYRO_CS_HIGH()  HAL_GPIO_WritePin(GYRO_CS_GPIO_PORT, GYRO_CS_PIN, GPIO_PIN_SET)
+
+// GYRO SPI interface pins
+#define GYRO_CS_GPIO_PORT                       GPIOE                       /* GPIOE */
+#define GYRO_CS_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOE_CLK_ENABLE()
+#define GYRO_CS_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOE_CLK_DISABLE()
+#define GYRO_CS_PIN                             GPIO_PIN_3                  /* PE.03 */
+
+#define GYRO_INT_GPIO_PORT                      GPIOE                       /* GPIOE */
+#define GYRO_INT_GPIO_CLK_ENABLE()              __HAL_RCC_GPIOE_CLK_ENABLE()
+#define GYRO_INT_GPIO_CLK_DISABLE()             __HAL_RCC_GPIOE_CLK_DISABLE()
+#define GYRO_INT1_PIN                           GPIO_PIN_0                  /* PE.00 */
+#define GYRO_INT1_EXTI_IRQn                     EXTI0_IRQn 
+#define GYRO_INT2_PIN                           GPIO_PIN_1                  /* PE.01 */
+#define GYRO_INT2_EXTI_IRQn                     EXTI1_IRQn 
 #endif // __STM32_ACCELERO_GYRO_H

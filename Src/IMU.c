@@ -7,8 +7,10 @@
 
 #include "IMU.h"
 
-static ACCELERO_DrvTypeDef *AccelerometerDrv;
+static ACCELERO_DrvTypeDef  *AccelerometerDrv;
+static GYRO_DrvTypeDef      *GyroscopeDrv;
 
+/* ########################### ACCELEROMETER ########################### */
 /**
   * @brief  Set Accelerometer Initialization.
   * @retval ACCELERO_OK if no problem during initialization
@@ -120,3 +122,4 @@ void BSP_Accelero_GetXYZ(int16_t *pDataXYZ)
         } 
     }
 }
+/* ########################### GYROSCOPE ########################### */
