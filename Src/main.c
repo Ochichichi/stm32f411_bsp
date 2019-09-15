@@ -31,6 +31,8 @@
 /* Private variables ---------------------------------------------------------*/
 int16_t accData[3];
 float gyroData[3];
+float magData[3];
+
 __IO uint8_t flag_ms = RESET;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,7 +67,14 @@ int main(void)
         Error_Handler();
     }
     else {
-        log_info("Configured LSM303DLHC sensor\r\n");
+    	if(BSP_Magneto_Init() != MAGNETO_OK)
+    	{
+            log_error("Failed to configure LSM303DLHC Magnetometer\r\n");
+            Error_Handler();
+    	}
+    	else {
+    		log_info("Configured LSM303DLHC sensor\r\n");
+    	}
     }
 
     log_info("Initializing Gyroscope ...\r\n");
@@ -80,12 +89,17 @@ int main(void)
 
     while(1) {
         BSP_Accelero_GetXYZ(accData);
+        BSP_Magneto_GetXYZ(magData);
         BSP_Gyro_GetXYZ(gyroData);
+
         if(flag_ms == SET)
         {
             log_debug("accX: %d\r\n", accData[0]);
             log_debug("accY: %d\r\n", accData[1]);
             log_debug("accZ: %d\r\n", accData[2]);
+            log_debug("magX: %.6f\r\n", magData[0]);
+            log_debug("magY: %.6f\r\n", magData[2]);
+            log_debug("magZ: %.6f\r\n", magData[1]);
             log_debug("gyroX: %.6f\r\n", gyroData[0]);
             log_debug("gyroY: %.6f\r\n", gyroData[1]);
             log_debug("gyroZ: %.6f\r\n", gyroData[2]);

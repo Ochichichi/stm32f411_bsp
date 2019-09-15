@@ -1,5 +1,5 @@
-#ifndef __STM32_ACCELERO_GYRO_H
-#define __STM32_ACCELERO_GYRO_H
+#ifndef __STM32_IMU_CONFIGURATION_H
+#define __STM32_IMU_CONFIGURATION_H
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
@@ -80,4 +80,5 @@
 #define GYRO_INT1_EXTI_IRQn                     EXTI0_IRQn 
 #define GYRO_INT2_PIN                           GPIO_PIN_1                  /* PE.01 */
 #define GYRO_INT2_EXTI_IRQn                     EXTI1_IRQn 
-#endif // __STM32_ACCELERO_GYRO_H
+
+#endif // __STM32_IMU_CONFIGURATION_H

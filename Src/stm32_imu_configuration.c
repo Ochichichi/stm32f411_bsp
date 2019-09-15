@@ -1,12 +1,12 @@
 /*
- * stm32_accelero_gyro.c
+ * stm32_imu_configuration.c
  *
  *  Created on: Sep 14, 2019
  *      Author: HiepNguyen
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32_accelero_gyro.h"
+#include <stm32_imu_configuration.h>
 #include "log.h"
 
 uint32_t I2cxTimeout = I2Cx_TIMEOUT_MAX;

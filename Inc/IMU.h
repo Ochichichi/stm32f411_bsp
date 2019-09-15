@@ -2,7 +2,7 @@
 #define __IMU_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32_accelero_gyro.h"
+#include "stm32_imu_configuration.h"
 #include "lsm303dlhc.h"
 #include "l3gd20.h"
 
