@@ -262,7 +262,7 @@ void L3GD20_ReadXYZAngRate(float *pfData)
     int16_t RawData[3] = {0};
     uint8_t tmpReg = 0;
     float sensitivity = 0;
-    int i =0;
+    int i = 0;
 
     L3GD20_IO_Read(&tmpReg, L3GD20_CTRL_REG4_ADDR,1);
 

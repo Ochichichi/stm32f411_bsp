@@ -3,14 +3,16 @@
  
 /* Includes ------------------------------------------------------------------*/
 #include "accelero.h"
+#include "magneto.h"
 #include "stm32f4xx_hal.h"
 
 /* Exported constant IO ------------------------------------------------------*/
 #define ACC_I2C_ADDRESS                      0x32
 #define MAG_I2C_ADDRESS                      0x3C
-
+// TODO: fix me, because LSM303DLHC doesn't have WHO_AM_I register
+#define I_AM_LMS303DLHC_ACC                  ((uint8_t)0x07)
+#define I_AM_LMS303DLHC_MAG                  ((uint8_t)0x10)
 /* Acceleration Registers */
-#define LSM303DLHC_WHO_AM_I_ADDR             0x0F  /* device identification register */
 #define LSM303DLHC_CTRL_REG1_A               0x20  /* Control register 1 acceleration */
 #define LSM303DLHC_CTRL_REG2_A               0x21  /* Control register 2 acceleration */
 #define LSM303DLHC_CTRL_REG3_A               0x22  /* Control register 3 acceleration */
@@ -64,8 +66,6 @@
 
 #define LSM303DLHC_TEMP_OUT_H_M              0x31  /* Temperature Register magnetic field */
 #define LSM303DLHC_TEMP_OUT_L_M              0x32  /* Temperature Register magnetic field */
-
-#define I_AM_LMS303DLHC                   ((uint8_t)0x33)
 
 // Acc Mode Power selection
 #define LSM303DLHC_NORMAL_MODE            ((uint8_t)0x00)
@@ -258,13 +258,21 @@ void    LSM303DLHC_AccClickITEnable(uint8_t ITClick);
 void    LSM303DLHC_AccClickITDisable(uint8_t ITClick);
 void    LSM303DLHC_AccZClickITConfig(void);
 
+// MAG functions
+void    LSM303DLHC_MagInit(uint16_t InitStruct, uint8_t magGain);
+void    LSM303DLHC_MagDeInit(void);
+uint8_t LSM303DLHC_MagReadID(void);
+void    LSM303DLHC_MagReadXYZ(float *pData);
+void LSM303DLHC_MagReadTemperature(uint8_t temp);
+
 // COMPASS / ACCELERO IO functions
 void    LSM303DLHC_IO_Init(void);
 void    LSM303DLHC_IO_ITConfig(void);
 void    LSM303DLHC_IO_Write(uint16_t deviceAddr, uint8_t registerAddr, uint8_t value);
 uint8_t LSM303DLHC_IO_Read(uint16_t deviceAddr, uint8_t registerAddr);
-
+void    LSM303DLHC_MagSetGain(uint8_t magGain);
+void    LSM303DLHC_MagSetRate(uint8_t magRate);
 // Extern driver structure
-extern ACCELERO_DrvTypeDef Lsm303dlhcDrv;
-
+extern ACCELERO_DrvTypeDef  Lsm303dlhcAccDrv;
+extern MAGNETO_DrvTypeDef   Lsm303dlhcMagDrv;
 #endif // __LSM303DLHC_H_

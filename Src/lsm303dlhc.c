@@ -7,9 +7,18 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "lsm303dlhc.h"
+#include "main.h"
+
+// Default Magneto gauss
+static uint16_t _LSM303DLHC_Mag_Gauss_LSB_XY   = LSM303DLHC_M_SENSITIVITY_XY_1_3Ga;
+static uint16_t _LSM303DLHC_Mag_Gauss_LSB_Z    = LSM303DLHC_M_SENSITIVITY_Z_1_3Ga;
+
+static uint8_t currentMagGain;
+const uint8_t  SensorGaussToMicroTesla = 100;
 
 /* Mapping functions pointer */
-ACCELERO_DrvTypeDef Lsm303dlhcDrv =
+// Accelerometer
+ACCELERO_DrvTypeDef Lsm303dlhcAccDrv =
 {
     LSM303DLHC_AccInit,
     LSM303DLHC_AccDeInit,
@@ -26,8 +35,20 @@ ACCELERO_DrvTypeDef Lsm303dlhcDrv =
     LSM303DLHC_AccReadXYZ
 };
 
+// Magnetometer
+MAGNETO_DrvTypeDef Lsm303dlhcMagDrv =
+{
+    LSM303DLHC_MagInit,
+    LSM303DLHC_MagDeInit,
+    LSM303DLHC_MagReadID,
+    0,
+    LSM303DLHC_MagReadXYZ,
+    LSM303DLHC_MagReadTemperature
+};
+
+/* ########################### ACCELEROMETER ########################### */
 /**
-  * @brief  Set LSM303DLHC Initialization.
+  * @brief  Set LSM303DLHC ACC Initialization.
   * @param  InitStruct: Init parameters
   * @retval None
   */
@@ -38,7 +59,7 @@ void LSM303DLHC_AccInit(uint16_t InitStruct)
     // Low level init
     LSM303DLHC_IO_Init();
 
-    // Write vaue to ACC MEMS CTRL_REG1 register
+    // Write value to ACC MEMS CTRL_REG1 register
     ctrl = (uint8_t)InitStruct;
     LSM303DLHC_IO_Write(ACC_I2C_ADDRESS, LSM303DLHC_CTRL_REG1_A, ctrl);
 
@@ -48,7 +69,7 @@ void LSM303DLHC_AccInit(uint16_t InitStruct)
 }
 
 /**
-  * @brief  LSM303DLHC De-initialization.
+  * @brief  LSM303DLHC ACC De-initialization.
   * @param  None
   * @retval None
   */
@@ -67,9 +88,12 @@ uint8_t LSM303DLHC_AccReadID(void)
 
     // Low level init
     LSM303DLHC_IO_Init();
-
-    // Read value at Who am I register address
-    ctrl = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_WHO_AM_I_ADDR);
+    
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So read LSM303DLHC_CTRL_REG1_A
+     * register to check. Default value is (0b00000111/0x07)
+     */
+    ctrl = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_CTRL_REG1_A);
 
     return ctrl;
 }
@@ -186,8 +210,6 @@ void LSM303DLHC_AccReadXYZ(int16_t *pData)
         break;
     case LSM303DLHC_FULLSCALE_16G:
         sensitivity = LSM303DLHC_ACC_SENSITIVITY_16G;
-        break;
-    default:
         break;
     }
 
@@ -478,4 +500,177 @@ void LSM303DLHC_AccZClickITConfig(void)
 
     /* Enable simple click IT on Z axis, */
     LSM303DLHC_AccClickITEnable(LSM303DLHC_Z_SINGLE_CLICK);
+}
+
+/* ########################### MAGNETOMETER ########################### */
+/**
+  * @brief  Set LSM303DLHC MAG Initialization.
+  * @param  InitStruct: Init parameters
+  * @retval None
+  */
+void LSM303DLHC_MagInit(uint16_t InitStruct, uint8_t magGain)
+{
+    uint8_t ctrl = 0x00;
+
+    // Write value to LSM303DLHC_CRA_REG_M register
+    ctrl = (uint8_t)InitStruct;
+    LSM303DLHC_IO_Write(MAG_I2C_ADDRESS, LSM303DLHC_CRA_REG_M, ctrl);
+
+    // Write value to LSM303DLHC_MR_REG_M register
+    ctrl = (uint8_t)(InitStruct << 8);
+    LSM303DLHC_IO_Write(MAG_I2C_ADDRESS, LSM303DLHC_MR_REG_M, ctrl);
+
+    // Set magnetomter gain
+    LSM303DLHC_MagSetGain(magGain);
+}
+/**
+  * @brief  Set LSM303DLHC MAG De-Initialization.
+  * @param  InitStruct: Init parameters
+  * @retval None
+  */
+void LSM303DLHC_MagDeInit(void)
+{
+
+}
+/**
+  * @brief  Read LSM303DLHC ID
+  * @param  InitStruct: Init parameters
+  * @retval None
+  */
+uint8_t LSM303DLHC_MagReadID(void)
+{
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So read LSM303DLHC_CRA_REG_M
+     * register to check. Default value is (0b00010000/0x10)
+     */
+    uint8_t id = 0x00;
+    id = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_CRA_REG_M);
+
+    return id;
+}
+
+
+/**
+  * @brief  Read X, Y & Z Magnetometer values 
+  * @param  pData: Data out pointer
+  * @retval None
+  */
+void LSM303DLHC_MagReadXYZ(float *pData)
+{
+    int16_t pnRawData[3];
+    int8_t buffer[6];
+    uint8_t i = 0;
+
+    // Read the ouput register X, Y & Z magnetometer
+    buffer[0] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_X_H_M);
+    buffer[1] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_X_L_M);
+    buffer[2] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_H_M);
+    buffer[3] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_L_M);
+    buffer[4] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_H_M);
+    buffer[5] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_L_M);
+    
+    // Little Endian
+    for(i=0; i<3; i++)
+    {
+        pnRawData[i] = ((int16_t)((uint16_t)buffer[2*i] << 8) + buffer[2*i+1]);
+    }
+
+    // Check if the sensor is saturating or not
+    if((pnRawData[0] >= 2040) | (pnRawData[0] <= -2040) | \
+        (pnRawData[1] >= 2040) | (pnRawData[1] <= -2040) | \
+        (pnRawData[2] >= 2040) | (pnRawData[2] <= -2040))
+    {
+        // TODO: Saturating .... increase the range
+        switch(currentMagGain)
+        {
+            case LSM303DLHC_FS_1_3_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_1_9_GA);
+                break;
+            case LSM303DLHC_FS_1_9_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_2_5_GA);
+                break;
+            case LSM303DLHC_FS_2_5_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_4_0_GA);
+                break;
+            case LSM303DLHC_FS_4_0_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_4_7_GA);
+                break;
+            case LSM303DLHC_FS_4_7_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_5_6_GA);
+                break;
+            case LSM303DLHC_FS_5_6_GA:
+                LSM303DLHC_MagSetGain(LSM303DLHC_FS_8_1_GA);
+                break;
+        }
+    }
+    
+    // Obtain the value for three axis
+    pData[0] = (float)pnRawData[0] / _LSM303DLHC_Mag_Gauss_LSB_XY * SensorGaussToMicroTesla; // magneto.x
+    pData[2] = (float)pnRawData[2] / _LSM303DLHC_Mag_Gauss_LSB_XY * SensorGaussToMicroTesla; // magneto.y
+    pData[1] = (float)pnRawData[1] / _LSM303DLHC_Mag_Gauss_LSB_Z * SensorGaussToMicroTesla;
+}
+/**
+  * @brief  Read temperature Magnetometer values 
+  * @param  None
+  * @retval None
+  */
+void LSM303DLHC_MagReadTemperature(uint8_t temp)
+{
+
+}
+
+/**
+  * @brief  Set LSM303DLHC MAG gain
+  * @param  None
+  * @retval None
+  */
+void LSM303DLHC_MagSetGain(uint8_t magGain)
+{
+    // Save the Mag gain
+    currentMagGain = magGain;
+
+    // Write value to CRB_REG_M register
+    LSM303DLHC_IO_Write(MAG_I2C_ADDRESS, LSM303DLHC_CRB_REG_M, magGain);
+    
+    switch(magGain)
+    {
+        case LSM303DLHC_FS_1_3_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_1_3Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_1_3Ga;
+            break;
+        case LSM303DLHC_FS_1_9_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_1_9Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_1_9Ga;
+            break;
+        case LSM303DLHC_FS_2_5_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_2_5Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_2_5Ga;
+            break;
+        case LSM303DLHC_FS_4_0_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_4Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_4Ga;
+            break;
+        case LSM303DLHC_FS_4_7_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_4_7Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_4_7Ga;
+            break;
+        case LSM303DLHC_FS_5_6_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_5_6Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_5_6Ga;
+            break;
+        case LSM303DLHC_FS_8_1_GA:
+            _LSM303DLHC_Mag_Gauss_LSB_XY    = LSM303DLHC_M_SENSITIVITY_XY_8_1Ga;
+            _LSM303DLHC_Mag_Gauss_LSB_Z     = LSM303DLHC_M_SENSITIVITY_Z_8_1Ga;
+            break;
+    }
+}
+/**
+  * @brief  Set LSM303DLHC MAG rate
+  * @param  None
+  * @retval None
+  */
+void LSM303DLHC_MagSetRate(uint8_t magRate)
+{
+    // Write value to CRA_REG_M register
+    LSM303DLHC_IO_Write(MAG_I2C_ADDRESS, LSM303DLHC_CRA_REG_M, magRate);
 }

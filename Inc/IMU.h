@@ -20,6 +20,13 @@ typedef enum
     GYRO_TIMEOUT = 2
 } GYRO_StatusTypeDef;
 
+typedef enum 
+{
+    MAGNETO_OK = 0,
+    MAGNETO_ERROR = 1,
+    MAGNETO_TIMEOUT = 2
+} MAGNETO_StatusTypeDef;
+
 // Accelerometer functions
 uint8_t BSP_Accelero_Init(void);
 void    BSP_Accelero_Reset(void);
@@ -35,4 +42,8 @@ void    BSP_Gyro_EnableIT(uint8_t IntPin);
 void    BSP_Gyro_DisableIT(uint8_t IntPin);
 void    BSP_Gyro_GetXYZ(float *pfData);
 
+// Magnetometer functions
+uint8_t BSP_Magneto_Init(void);
+uint8_t BSP_Magneto_ReadID(void);
+void    BSP_Magneto_GetXYZ(float *mDataXYZ);
 #endif // __IMU_H

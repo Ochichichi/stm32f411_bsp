@@ -9,7 +9,7 @@
 
 static ACCELERO_DrvTypeDef  *AccelerometerDrv;
 static GYRO_DrvTypeDef      *GyroscopeDrv;
-
+static MAGNETO_DrvTypeDef   *MagnetometerDrv;
 /* ########################### ACCELEROMETER ########################### */
 /**
   * @brief  Set Accelerometer Initialization.
@@ -23,10 +23,10 @@ uint8_t BSP_Accelero_Init(void)
     ACCELERO_InitTypeDef            LSM303DLHC_InitStruct;
     ACCELERO_FilterConfigTypeDef    LSM303DLHC_FilterStruct;
 
-    if(Lsm303dlhcDrv.ReadID() == I_AM_LMS303DLHC)
+    if(Lsm303dlhcAccDrv.ReadID() == I_AM_LMS303DLHC_ACC)
     {
         // Initialize the Accelerometer driver structure
-        AccelerometerDrv = &Lsm303dlhcDrv;
+        AccelerometerDrv = &Lsm303dlhcAccDrv;
 
         // MEMS configuration
         // Fill the Accelerometer structure
@@ -104,21 +104,21 @@ void BSP_Accelero_Click_ITConfig(void)
   */
 void BSP_Accelero_GetXYZ(int16_t *pDataXYZ)
 {
-    int16_t SwitchXY = 0;
+    // int16_t SwitchXY = 0;
 
     if(AccelerometerDrv->GetXYZ!= NULL)
     {
         AccelerometerDrv->GetXYZ(pDataXYZ);
     
         /* Switch X and Y Axes in case of LSM303DLHC MEMS */
-        if(AccelerometerDrv == &Lsm303dlhcDrv)
-        { 
-            SwitchXY  = pDataXYZ[0];
-            pDataXYZ[0] = pDataXYZ[1];
+        // if(AccelerometerDrv == &Lsm303dlhcAccDrv)
+        // { 
+        //     SwitchXY  = pDataXYZ[0];
+        //     pDataXYZ[0] = pDataXYZ[1];
 
-            /* Invert Y Axis to be conpliant with LIS3DSH */
-            pDataXYZ[1] = -SwitchXY;
-        } 
+        //     /* Invert Y Axis to be conpliant with LIS3DSH */
+        //     pDataXYZ[1] = -SwitchXY;
+        // } 
     }
 }
 /* ########################### GYROSCOPE ########################### */
@@ -265,5 +265,72 @@ void BSP_Gyro_GetXYZ(float *pfData)
     if(GyroscopeDrv->GetXYZ!= NULL)
     {
         GyroscopeDrv->GetXYZ(pfData);
+    }
+}
+
+/* ########################### MAGNETOMETER ########################### */
+/**
+  * @brief  Set Magnetometer Initialization.
+  * @retval MAGNETO_OK if no problem during initialization
+  */
+uint8_t BSP_Magneto_Init(void)
+{
+    uint8_t ret = MAGNETO_ERROR;
+    uint16_t ctrl = 0x0000;
+    uint8_t gain = 0x00;
+
+    MAGNETO_InitTypeDef         LSM303DLHC_InitStruct;
+
+    if(Lsm303dlhcMagDrv.ReadID() == I_AM_LMS303DLHC_MAG)
+    {
+        MagnetometerDrv = &Lsm303dlhcMagDrv;
+
+        // Fill the Magneto paramter
+        LSM303DLHC_InitStruct.Power_Mode            = LSM303DLHC_CONTINUOS_CONVERSION;
+        LSM303DLHC_InitStruct.MagOutput_DataRate    = LSM303DLHC_ODR_15_HZ;
+        LSM303DLHC_InitStruct.MagFull_Scale         = LSM303DLHC_FS_1_3_GA;
+        LSM303DLHC_InitStruct.MagTemperature        = LSM303DLHC_TEMPSENSOR_DISABLE;
+
+        // Configure MEMS: power mode, data rate, scale and temperature
+        ctrl =  (uint16_t)(LSM303DLHC_InitStruct.MagTemperature | \
+                            LSM303DLHC_InitStruct.MagOutput_DataRate);
+        ctrl |= (uint16_t)(LSM303DLHC_InitStruct.Power_Mode << 8);
+
+        gain = LSM303DLHC_InitStruct.MagFull_Scale;
+
+        // Configure MAGNETO paramter
+        MagnetometerDrv->Init(ctrl, gain);
+
+        ret = MAGNETO_OK;
+    }
+
+    return ret;
+}
+/**
+  * @brief  Read ID of Magnetometer component.
+  * @retval ID
+  */
+uint8_t BSP_Magneto_ReadID(void)
+{
+    uint8_t id = 0x00;
+
+    if(MagnetometerDrv->ReadID != NULL)
+    {
+        id = MagnetometerDrv ->ReadID();
+    }
+
+    return id;
+}
+
+/**
+  * @brief  Get XYZ axes magnetometer.
+  * @param  pDataXYZ: Pointer to 3 angular magnetometer axes.  
+  *                   pDataXYZ[0] = X axis, pDataXYZ[1] = Z axis, pDataXYZ[2] = Y axis
+  */
+void BSP_Magneto_GetXYZ(float *mDataXYZ)
+{
+    if(MagnetometerDrv->GetXYZ!= NULL)
+    {
+        MagnetometerDrv->GetXYZ(mDataXYZ);
     }
 }
