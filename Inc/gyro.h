@@ -42,6 +42,7 @@ typedef struct
 
 /**
  * GYRO High Pass Filter struct
+ */
 typedef struct
 {
     /* data */

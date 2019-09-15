@@ -55,5 +55,6 @@ void BSP_LED_Init(Led_TypeDef Led);
 void BSP_LED_On(Led_TypeDef Led);
 void BSP_LED_Off(Led_TypeDef Led);
 void BSP_LED_Toggle(Led_TypeDef Led);
-
+void BSP_ALL_LED_Init(void);
+void BSP_LED_Blinky(void);
 #endif // __LED_H_

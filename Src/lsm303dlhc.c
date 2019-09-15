@@ -2,7 +2,7 @@
  * lsm303dlhc.c
  *
  *  Created on: Sep 14, 2019
- *      Author: HoaHiep
+ *      Author: HiepNguyen
  */
 
 /* Includes ------------------------------------------------------------------*/

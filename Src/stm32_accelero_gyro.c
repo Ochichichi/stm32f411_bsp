@@ -2,7 +2,7 @@
  * stm32_accelero_gyro.c
  *
  *  Created on: Sep 14, 2019
- *      Author: HoaHiep
+ *      Author: HiepNguyen
  */
 
 /* Includes ------------------------------------------------------------------*/
@@ -22,23 +22,25 @@ static uint8_t  I2Cx_ReadData(uint16_t addr, uint8_t reg);
 static void     I2Cx_Error(void);
 static void     I2Cx_MspInit(I2C_HandleTypeDef *hi2c);
 
-/* SPIx bus function */
+// SPIx bus function
 static void    SPIx_Init(void);
 static uint8_t SPIx_WriteRead(uint8_t byte);
 static void    SPIx_Error (void);
 static void    SPIx_MspInit(SPI_HandleTypeDef *hspi);
 
-// Link functions for ACCELERO / COMPASS peripheral
+// Link functions for ACCELERO peripheral
 void    LSM303DLHC_IO_Init(void);
 void    LSM303DLHC_IO_ITConfig(void);
 void    LSM303DLHC_IO_Write(uint16_t deviceAddr, uint8_t registerAddr, uint8_t value);
 uint8_t LSM303DLHC_IO_Read(uint16_t deviceAddr, uint8_t registerAddr);
 
-// Link function for GYRO peripheral
+// Link functions for GYRO peripheral
 void    L3GD20_IO_Init(void);
 void    L3GD20_IO_Write(uint8_t *pBuffer, uint8_t writeAddr, uint16_t numByteToWrite);
 void    L3GD20_IO_Read(uint8_t *pBuffer, uint8_t readAddr, uint16_t numByteToRead);
 
+
+/* ########################### I2C Routines ########################### */
 /**
   * @brief  I2Cx Bus initialization.
   */
@@ -55,13 +57,13 @@ static void I2Cx_Init(void)
         I2cHandle.Init.OwnAddress2      = 0x00;
         I2cHandle.Init.GeneralCallMode  = I2C_GENERALCALL_DISABLED;
         I2cHandle.Init.NoStretchMode    = I2C_NOSTRETCH_DISABLED;
-    }
 
-    // Init the I2C
-    I2Cx_MspInit(&I2cHandle);
-    if (HAL_I2C_Init(&I2cHandle) != HAL_OK)
-    {
-        log_error("Failed to initialize I2C\r\n");
+        // Init the I2C bus
+        I2Cx_MspInit(&I2cHandle);
+        if (HAL_I2C_Init(&I2cHandle) != HAL_OK)
+        {
+            log_error("Failed to initialize I2C bus\r\n");
+        }
     }
 }
 
@@ -80,7 +82,7 @@ static void I2Cx_MspInit(I2C_HandleTypeDef *hi2c)
     ACCELERO_I2Cx_GPIO_CLK_ENABLE();
 
     // I2Cx SDA & SCL pin configuration
-    GPIO_InitStruct.Pin         = ACCELERO_I2Cx_SCL_PIN | ACCELERO_I2Cx_SDA_PIN;
+    GPIO_InitStruct.Pin         = (ACCELERO_I2Cx_SCL_PIN | ACCELERO_I2Cx_SDA_PIN);
     GPIO_InitStruct.Mode        = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull        = GPIO_NOPULL;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FAST;
@@ -127,7 +129,7 @@ static void I2Cx_WriteData(uint16_t addr, uint8_t reg, uint8_t value)
     status = HAL_I2C_Mem_Write(&I2cHandle, addr, (uint16_t)reg, I2C_MEMADD_SIZE_8BIT, &value, 1, I2cxTimeout);
     if(status != HAL_OK)
     {
-        log_error("Failed to write via I2C bus\r\n");
+        log_error("Failed to write data on the I2C bus\r\n");
         I2Cx_Error();
     }
 }
@@ -149,7 +151,7 @@ static uint8_t I2Cx_ReadData(uint16_t addr, uint8_t reg)
     if(status != HAL_OK)
     {
       /* Execute user timeout callback */
-      log_error("Failed to read via I2C bus\r\n");
+      log_error("Failed to read data on the I2C bus\r\n");
       I2Cx_Error();
     }
 
@@ -188,7 +190,7 @@ void LSM303DLHC_IO_ITConfig(void)
     GPIO_InitStruct.Pull  = GPIO_NOPULL;
     HAL_GPIO_Init(ACCELERO_INT_GPIO_PORT, &GPIO_InitStruct);
 
-    /* Enable and set COMPASS / ACCELERO Interrupt to the lowest priority */
+    /* Enable and set ACCELERO Interrupt to the lowest priority */
     HAL_NVIC_SetPriority(ACCELERO_INT1_EXTI_IRQn, 0x0F, 0x00);
     HAL_NVIC_EnableIRQ(ACCELERO_INT1_EXTI_IRQn);
 }
@@ -202,8 +204,9 @@ uint8_t LSM303DLHC_IO_Read(uint16_t deviceAddr, uint8_t registerAddr)
 {
     return I2Cx_ReadData(deviceAddr, registerAddr);
 }
-/* ########################### END ########################### */
 
+
+/* ########################### SPI Routines ########################### */
 /**
   * @brief  SPIx Bus initialization.
   */
@@ -232,10 +235,11 @@ static void SPIx_Init(void)
         SpiHandle.Init.TIMode = SPI_TIMODE_DISABLED;
         SpiHandle.Init.Mode = SPI_MODE_MASTER;
 
+        // Init the SPI bus
         SPIx_MspInit(&SpiHandle);
         if(HAL_SPI_Init(&SpiHandle) != HAL_OK)
         {
-            log_error("Failed to initialize SPI\r\n");
+            log_error("Failed to initialize SPI bus\r\n");
         }
     }
 }
@@ -289,7 +293,7 @@ static uint8_t SPIx_WriteRead(uint8_t byte)
     /* Read byte from the SPI bus */
     if(HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t*) &byte, (uint8_t*) &receivedByte, 1, SpixTimeout) != HAL_OK)
     {
-        log_error("Failed to Transmit/Receive via SPI bus\r\n");
+        log_error("Failed to Transmit/Receive data on the SPI bus\r\n");
         SPIx_Error();
     }
 
@@ -297,7 +301,6 @@ static uint8_t SPIx_WriteRead(uint8_t byte)
 }
 
 /* ########################### GYROSCOPE ########################### */
-// Link GYRO functions
 void L3GD20_IO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -372,7 +375,7 @@ void L3GD20_IO_Read(uint8_t *pBuffer, uint8_t readAddr, uint16_t numByteToRead)
     SPIx_WriteRead(readAddr);
 
     // Receive the data that will be read from the device (MSB First)
-    while (numByeToRead > 0x00)
+    while (numByteToRead > 0x00)
     {
         // Send dummy byte (0x00) to generate the SPI clock to GYRO(Slave device)
         *pBuffer = SPIx_WriteRead(DUMMY_BYTE);

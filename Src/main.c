@@ -20,7 +20,7 @@
 #include "main.h"
 /* Private includes ----------------------------------------------------------*/
 #include "IMU.h"
-
+#include "led.h"
 #include <stdio.h>
 /* Private typedef -----------------------------------------------------------*/
 
@@ -30,7 +30,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 int16_t accData[3];
+float gyroData[3];
 __IO uint8_t flag_ms = RESET;
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 
@@ -52,19 +54,41 @@ int main(void)
 
     /* Initialize all configured peripherals */
     log_init();
-    log_info("Configured Serial Port ---> USART2\r\n");
+    BSP_ALL_LED_Init();
+    log_info("Configured Serial Port !!!\r\n");
 
-    /* Init on-board AccelMag */
-    log_info("Initializing Accelerometer ---> LSM303DLHC Sensor\r\n");
-    BSP_Accelero_Init();
+    /* Init on-board IMU */
+    log_info("Initializing Accelerometer ...\r\n");
+    if(BSP_Accelero_Init() != ACCELERO_OK)
+    {
+        log_error("Failed to configure LSM303DLHC Accelerometer\r\n");
+        Error_Handler();
+    }
+    else {
+        log_info("Configured LSM303DLHC sensor\r\n");
+    }
+
+    log_info("Initializing Gyroscope ...\r\n");
+    if(BSP_Gyro_Init() != GYRO_OK)
+    {
+        log_error("Failed to configure L3GD20 Sensor\r\n");
+        Error_Handler();
+    }
+    else {
+        log_info("Configured L3GD20 Sensor\r\n");
+    }
 
     while(1) {
         BSP_Accelero_GetXYZ(accData);
+        BSP_Gyro_GetXYZ(gyroData);
         if(flag_ms == SET)
         {
             log_debug("accX: %d\r\n", accData[0]);
             log_debug("accY: %d\r\n", accData[1]);
             log_debug("accZ: %d\r\n", accData[2]);
+            log_debug("gyroX: %.6f\r\n", gyroData[0]);
+            log_debug("gyroY: %.6f\r\n", gyroData[1]);
+            log_debug("gyroZ: %.6f\r\n", gyroData[2]);
             flag_ms = RESET;
         }
     }
@@ -95,7 +119,7 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.PLL.PLLQ = 8;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
     {
-      Error_Handler();
+        Error_Handler();
     }
     /** Initializes the CPU, AHB and APB busses clocks 
     */
@@ -108,7 +132,7 @@ void SystemClock_Config(void)
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
     {
-      Error_Handler();
+        Error_Handler();
     }
 }
 
@@ -120,6 +144,9 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
     /* User can add his own implementation to report the HAL error return state */
+    while(1) {
+        BSP_LED_Blinky();
+    }
 
 }
 
