@@ -9,9 +9,7 @@
 /* Exported constant IO ------------------------------------------------------*/
 #define ACC_I2C_ADDRESS                      0x32
 #define MAG_I2C_ADDRESS                      0x3C
-// TODO: fix me, because LSM303DLHC doesn't have WHO_AM_I register
-#define I_AM_LMS303DLHC_ACC                  ((uint8_t)0x07)
-#define I_AM_LMS303DLHC_MAG                  ((uint8_t)0x10)
+
 /* Acceleration Registers */
 #define LSM303DLHC_CTRL_REG1_A               0x20  /* Control register 1 acceleration */
 #define LSM303DLHC_CTRL_REG2_A               0x21  /* Control register 2 acceleration */
@@ -244,7 +242,7 @@ uint8_t LSM303DLHC_AccReadID(void);
 void    LSM303DLHC_AccRebootCmd(void);
 void    LSM303DLHC_AccFilterConfig(uint8_t FilterStruct);
 void    LSM303DLHC_AccFilterCmd(uint8_t HighPassFilterState);
-void    LSM303DLHC_AccReadXYZ(int16_t *pData);
+void    LSM303DLHC_AccReadXYZ(float *pData);
 void    LSM303DLHC_AccFilterClickCmd(uint8_t HighPassFilterClickState);
 void    LSM303DLHC_AccIT1Enable(uint8_t LSM303DLHC_IT);
 void    LSM303DLHC_AccIT1Disable(uint8_t LSM303DLHC_IT);

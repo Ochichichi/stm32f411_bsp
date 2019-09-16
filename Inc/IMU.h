@@ -31,7 +31,7 @@ typedef enum
 uint8_t BSP_Accelero_Init(void);
 void    BSP_Accelero_Reset(void);
 void    BSP_Accelero_Click_ITConfig(void);
-void    BSP_Accelero_GetXYZ(int16_t *pDataXYZ);
+void    BSP_Accelero_GetXYZ(float *pDataXYZ);
 
 // Gyroscope functions
 uint8_t BSP_Gyro_Init(void);

@@ -29,7 +29,7 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-int16_t accData[3];
+float accData[3];
 float gyroData[3];
 float magData[3];
 
@@ -61,21 +61,9 @@ int main(void)
 
     /* Init on-board IMU */
     log_info("Initializing Accelerometer ...\r\n");
-    if(BSP_Accelero_Init() != ACCELERO_OK)
-    {
-        log_error("Failed to configure LSM303DLHC Accelerometer\r\n");
-        Error_Handler();
-    }
-    else {
-    	if(BSP_Magneto_Init() != MAGNETO_OK)
-    	{
-            log_error("Failed to configure LSM303DLHC Magnetometer\r\n");
-            Error_Handler();
-    	}
-    	else {
-    		log_info("Configured LSM303DLHC sensor\r\n");
-    	}
-    }
+    BSP_Accelero_Init();
+    BSP_Magneto_Init();
+    log_info("Configured LSM303DLHC sensor\r\n");
 
     log_info("Initializing Gyroscope ...\r\n");
     if(BSP_Gyro_Init() != GYRO_OK)
@@ -83,9 +71,7 @@ int main(void)
         log_error("Failed to configure L3GD20 Sensor\r\n");
         Error_Handler();
     }
-    else {
-        log_info("Configured L3GD20 Sensor\r\n");
-    }
+    log_info("Configured L3GD20 Sensor\r\n");
 
     while(1) {
         BSP_Accelero_GetXYZ(accData);
@@ -94,15 +80,15 @@ int main(void)
 
         if(flag_ms == SET)
         {
-            log_debug("accX: %d\r\n", accData[0]);
-            log_debug("accY: %d\r\n", accData[1]);
-            log_debug("accZ: %d\r\n", accData[2]);
-            log_debug("magX: %.6f\r\n", magData[0]);
-            log_debug("magY: %.6f\r\n", magData[2]);
-            log_debug("magZ: %.6f\r\n", magData[1]);
-            log_debug("gyroX: %.6f\r\n", gyroData[0]);
-            log_debug("gyroY: %.6f\r\n", gyroData[1]);
-            log_debug("gyroZ: %.6f\r\n", gyroData[2]);
+            log_debug("accX: %.2f\r\n", accData[0]);
+            log_debug("accY: %.2f\r\n", accData[1]);
+            log_debug("accZ: %.2f\r\n", accData[2]);
+            log_debug("magX: %.2f\r\n", magData[0]);
+            log_debug("magY: %.2f\r\n", magData[1]);
+            log_debug("magZ: %.2f\r\n", magData[2]);
+            log_debug("gyroX: %.2f\r\n", gyroData[0]);
+            log_debug("gyroY: %.2f\r\n", gyroData[1]);
+            log_debug("gyroZ: %.2f\r\n", gyroData[2]);
             flag_ms = RESET;
         }
     }

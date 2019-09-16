@@ -9,12 +9,21 @@
 #include "lsm303dlhc.h"
 #include "main.h"
 
+/* Constants */
+#define SENSORS_GRAVITY_EARTH             (9.80665F)              /**< Earth's gravity in m/s^2 */
+#define SENSORS_GRAVITY_MOON              (1.6F)                  /**< The moon's gravity in m/s^2 */
+#define SENSORS_GRAVITY_SUN               (275.0F)                /**< The sun's gravity in m/s^2 */
+#define SENSORS_GRAVITY_STANDARD          (SENSORS_GRAVITY_EARTH)
+#define SENSORS_MAGFIELD_EARTH_MAX        (60.0F)                 /**< Maximum magnetic field on Earth's surface */
+#define SENSORS_MAGFIELD_EARTH_MIN        (30.0F)                 /**< Minimum magnetic field on Earth's surface */
+#define SENSORS_PRESSURE_SEALEVELHPA      (1013.25F)              /**< Average sea level pressure is 1013.25 hPa */
+#define SENSORS_DPS_TO_RADS               (0.017453293F)          /**< Degrees/s to rad/s multiplier */
+#define SENSORS_GAUSS_TO_MICROTESLA       (100)                   /**< Gauss to micro-Tesla multiplier */
+
 // Default Magneto gauss
 static uint16_t _LSM303DLHC_Mag_Gauss_LSB_XY   = LSM303DLHC_M_SENSITIVITY_XY_1_3Ga;
 static uint16_t _LSM303DLHC_Mag_Gauss_LSB_Z    = LSM303DLHC_M_SENSITIVITY_Z_1_3Ga;
-
 static uint8_t currentMagGain;
-const uint8_t  SensorGaussToMicroTesla = 100;
 
 /* Mapping functions pointer */
 // Accelerometer
@@ -84,18 +93,15 @@ void LSM303DLHC_AccDeInit(void)
   */
 uint8_t LSM303DLHC_AccReadID(void)
 {
-    uint8_t ctrl = 0x00;
+    uint8_t id = 0x00;
 
     // Low level init
     LSM303DLHC_IO_Init();
-    
-    /**
-     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So read LSM303DLHC_CTRL_REG1_A
-     * register to check. Default value is (0b00000111/0x07)
-     */
-    ctrl = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_CTRL_REG1_A);
 
-    return ctrl;
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register.
+     */
+    return id;
 }
 
 /**
@@ -160,7 +166,7 @@ void LSM303DLHC_AccFilterCmd(uint8_t HighPassFilterState)
   * @param  pData: Data out pointer
   * @retval None
   */
-void LSM303DLHC_AccReadXYZ(int16_t *pData)
+void LSM303DLHC_AccReadXYZ(float *pData)
 {
     int16_t pnRawData[3];
     uint8_t ctrlx[2] = {0,0};
@@ -216,7 +222,7 @@ void LSM303DLHC_AccReadXYZ(int16_t *pData)
     // Obtain the mg value for three axis
     for(i=0; i < 3; i++)
     {
-        pData[i] = (pnRawData[i] * sensitivity);
+        pData[i] = ((float)pnRawData[i] * sensitivity /* *SENSORS_GRAVITY_STANDARD */);
     }
 }
 
@@ -539,13 +545,10 @@ void LSM303DLHC_MagDeInit(void)
   */
 uint8_t LSM303DLHC_MagReadID(void)
 {
-    /**
-     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So read LSM303DLHC_CRA_REG_M
-     * register to check. Default value is (0b00010000/0x10)
-     */
     uint8_t id = 0x00;
-    id = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_CRA_REG_M);
-
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register.
+     */
     return id;
 }
 
@@ -564,11 +567,11 @@ void LSM303DLHC_MagReadXYZ(float *pData)
     // Read the ouput register X, Y & Z magnetometer
     buffer[0] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_X_H_M);
     buffer[1] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_X_L_M);
-    buffer[2] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_H_M);
-    buffer[3] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_L_M);
-    buffer[4] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_H_M);
-    buffer[5] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_L_M);
-    
+    buffer[2] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_H_M);
+    buffer[3] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Y_L_M);
+    buffer[4] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_H_M);
+    buffer[5] = LSM303DLHC_IO_Read(MAG_I2C_ADDRESS, LSM303DLHC_OUT_Z_L_M);
+
     // Little Endian
     for(i=0; i<3; i++)
     {
@@ -605,9 +608,9 @@ void LSM303DLHC_MagReadXYZ(float *pData)
     }
     
     // Obtain the value for three axis
-    pData[0] = (float)pnRawData[0] / _LSM303DLHC_Mag_Gauss_LSB_XY * SensorGaussToMicroTesla; // magneto.x
-    pData[2] = (float)pnRawData[2] / _LSM303DLHC_Mag_Gauss_LSB_XY * SensorGaussToMicroTesla; // magneto.y
-    pData[1] = (float)pnRawData[1] / _LSM303DLHC_Mag_Gauss_LSB_Z * SensorGaussToMicroTesla;
+    pData[0] = (float)pnRawData[0] / _LSM303DLHC_Mag_Gauss_LSB_XY * SENSORS_GAUSS_TO_MICROTESLA; // magneto.x
+    pData[1] = (float)pnRawData[1] / _LSM303DLHC_Mag_Gauss_LSB_XY * SENSORS_GAUSS_TO_MICROTESLA; // magneto.y
+    pData[2] = (float)pnRawData[2] / _LSM303DLHC_Mag_Gauss_LSB_Z * SENSORS_GAUSS_TO_MICROTESLA; // // magneto.z
 }
 /**
   * @brief  Read temperature Magnetometer values 

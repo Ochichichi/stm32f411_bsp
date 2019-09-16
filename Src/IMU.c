@@ -17,60 +17,57 @@ static MAGNETO_DrvTypeDef   *MagnetometerDrv;
   */
 uint8_t BSP_Accelero_Init(void)
 {
-    uint8_t ret = ACCELERO_ERROR;
+    uint8_t ret = ACCELERO_OK;
     uint16_t ctrl = 0x0000;
 
     ACCELERO_InitTypeDef            LSM303DLHC_InitStruct;
     ACCELERO_FilterConfigTypeDef    LSM303DLHC_FilterStruct;
 
-    if(Lsm303dlhcAccDrv.ReadID() == I_AM_LMS303DLHC_ACC)
-    {
-        // Initialize the Accelerometer driver structure
-        AccelerometerDrv = &Lsm303dlhcAccDrv;
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_I_AM register. So we can't check ID sensor with ReadID function.
+     * Default return value is ACCELERO_OK
+     * if(Lsm303dlhcAccDrv.ReadID() == I_AM_LMS303DLHC_ACC)
+     */
 
-        // MEMS configuration
-        // Fill the Accelerometer structure
-        LSM303DLHC_InitStruct.Power_Mode = LSM303DLHC_NORMAL_MODE;
-        LSM303DLHC_InitStruct.AccOutput_DataRate = LSM303DLHC_ODR_50_HZ;
-        LSM303DLHC_InitStruct.Axes_Enable = LSM303DLHC_AXES_ENABLE;
-        LSM303DLHC_InitStruct.AccFull_Scale = LSM303DLHC_FULLSCALE_2G;
-        LSM303DLHC_InitStruct.BlockData_Update = LSM303DLHC_BlockUpdate_Continous;
-        LSM303DLHC_InitStruct.Endianness = LSM303DLHC_BLE_LSB;
-        LSM303DLHC_InitStruct.High_Resolution = LSM303DLHC_HR_ENABLE;
+    // Initialize the Accelerometer driver structure
+    AccelerometerDrv = &Lsm303dlhcAccDrv;
+    // MEMS configuration
+    // Fill the Accelerometer structure
+    LSM303DLHC_InitStruct.Power_Mode = LSM303DLHC_NORMAL_MODE;
+    LSM303DLHC_InitStruct.AccOutput_DataRate = LSM303DLHC_ODR_50_HZ;
+    LSM303DLHC_InitStruct.Axes_Enable = LSM303DLHC_AXES_ENABLE;
+    LSM303DLHC_InitStruct.AccFull_Scale = LSM303DLHC_FULLSCALE_2G;
+    LSM303DLHC_InitStruct.BlockData_Update = LSM303DLHC_BlockUpdate_Continous;
+    LSM303DLHC_InitStruct.Endianness = LSM303DLHC_BLE_LSB;
+    LSM303DLHC_InitStruct.High_Resolution = LSM303DLHC_HR_ENABLE;
 
-        // Configure MEMS: data rate, power mode, full scale and axes
-        ctrl |= (LSM303DLHC_InitStruct.Power_Mode | \
-                LSM303DLHC_InitStruct.AccOutput_DataRate | \
-                LSM303DLHC_InitStruct.Axes_Enable);
-        
-        ctrl |= ((LSM303DLHC_InitStruct.BlockData_Update | \
-                LSM303DLHC_InitStruct.Endianness | \
-                LSM303DLHC_InitStruct.AccFull_Scale | \
-                LSM303DLHC_InitStruct.High_Resolution) << 8);
-        
-        // Configure the Accelerometer main parameter
-        AccelerometerDrv->Init(ctrl);
+    // Configure MEMS: data rate, power mode, full scale and axes
+    ctrl |= (LSM303DLHC_InitStruct.Power_Mode | \
+            LSM303DLHC_InitStruct.AccOutput_DataRate | \
+            LSM303DLHC_InitStruct.Axes_Enable);
+    
+    ctrl |= ((LSM303DLHC_InitStruct.BlockData_Update | \
+            LSM303DLHC_InitStruct.Endianness | \
+            LSM303DLHC_InitStruct.AccFull_Scale | \
+            LSM303DLHC_InitStruct.High_Resolution) << 8);
+    
+    // Configure the Accelerometer main parameter
+    AccelerometerDrv->Init(ctrl);
 
-        // Fill the Accelerometer LPF structure
-        LSM303DLHC_FilterStruct.HighPassFilter_Mode_Selection =LSM303DLHC_HPM_NORMAL_MODE;
-        LSM303DLHC_FilterStruct.HighPassFilter_CutOff_Frequency = LSM303DLHC_HPFCF_16;
-        LSM303DLHC_FilterStruct.HighPassFilter_AOI1 = LSM303DLHC_HPF_AOI1_DISABLE;
-        LSM303DLHC_FilterStruct.HighPassFilter_AOI2 = LSM303DLHC_HPF_AOI2_DISABLE;
+    // Fill the Accelerometer LPF structure
+    LSM303DLHC_FilterStruct.HighPassFilter_Mode_Selection =LSM303DLHC_HPM_NORMAL_MODE;
+    LSM303DLHC_FilterStruct.HighPassFilter_CutOff_Frequency = LSM303DLHC_HPFCF_16;
+    LSM303DLHC_FilterStruct.HighPassFilter_AOI1 = LSM303DLHC_HPF_AOI1_DISABLE;
+    LSM303DLHC_FilterStruct.HighPassFilter_AOI2 = LSM303DLHC_HPF_AOI2_DISABLE;
 
-        // Configure MEMS: mode, cutoff frquency, Filter status, Click, AOI1 and AOI2
-        ctrl = (uint8_t) (LSM303DLHC_FilterStruct.HighPassFilter_Mode_Selection | \
-                            LSM303DLHC_FilterStruct.HighPassFilter_CutOff_Frequency | \
-                            LSM303DLHC_FilterStruct.HighPassFilter_AOI1 |\
-                            LSM303DLHC_FilterStruct.HighPassFilter_AOI2);
-        
-        // Configure the Accelerometer main LPF parameter
-        AccelerometerDrv->FilterConfig(ctrl);
-
-        ret = ACCELERO_OK;
-    }
-    else {
-        ret = ACCELERO_ERROR;
-    }
+    // Configure MEMS: mode, cutoff frquency, Filter status, Click, AOI1 and AOI2
+    ctrl = (uint8_t) (LSM303DLHC_FilterStruct.HighPassFilter_Mode_Selection | \
+                        LSM303DLHC_FilterStruct.HighPassFilter_CutOff_Frequency | \
+                        LSM303DLHC_FilterStruct.HighPassFilter_AOI1 |\
+                        LSM303DLHC_FilterStruct.HighPassFilter_AOI2);
+    
+    // Configure the Accelerometer main LPF parameter
+    AccelerometerDrv->FilterConfig(ctrl);
 
     return ret;
 }
@@ -102,23 +99,11 @@ void BSP_Accelero_Click_ITConfig(void)
   * @param  pDataXYZ: Pointer to 3 angular acceleration axes.  
   *                   pDataXYZ[0] = X axis, pDataXYZ[1] = Y axis, pDataXYZ[2] = Z axis
   */
-void BSP_Accelero_GetXYZ(int16_t *pDataXYZ)
+void BSP_Accelero_GetXYZ(float *pDataXYZ)
 {
-    // int16_t SwitchXY = 0;
-
     if(AccelerometerDrv->GetXYZ!= NULL)
     {
         AccelerometerDrv->GetXYZ(pDataXYZ);
-    
-        /* Switch X and Y Axes in case of LSM303DLHC MEMS */
-        // if(AccelerometerDrv == &Lsm303dlhcAccDrv)
-        // { 
-        //     SwitchXY  = pDataXYZ[0];
-        //     pDataXYZ[0] = pDataXYZ[1];
-
-        //     /* Invert Y Axis to be conpliant with LIS3DSH */
-        //     pDataXYZ[1] = -SwitchXY;
-        // } 
     }
 }
 /* ########################### GYROSCOPE ########################### */
@@ -275,34 +260,37 @@ void BSP_Gyro_GetXYZ(float *pfData)
   */
 uint8_t BSP_Magneto_Init(void)
 {
-    uint8_t ret = MAGNETO_ERROR;
+    uint8_t ret = MAGNETO_OK;
     uint16_t ctrl = 0x0000;
     uint8_t gain = 0x00;
 
     MAGNETO_InitTypeDef         LSM303DLHC_InitStruct;
 
-    if(Lsm303dlhcMagDrv.ReadID() == I_AM_LMS303DLHC_MAG)
-    {
-        MagnetometerDrv = &Lsm303dlhcMagDrv;
+    /**
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So we can't check ID sensor with GetID function
+     * Default return value is MAGNETO_OK
+     * if(Lsm303dlhcMagDrv.ReadID() == I_AM_LMS303DLHC_MAG)
+     */
 
-        // Fill the Magneto paramter
-        LSM303DLHC_InitStruct.Power_Mode            = LSM303DLHC_CONTINUOS_CONVERSION;
-        LSM303DLHC_InitStruct.MagOutput_DataRate    = LSM303DLHC_ODR_15_HZ;
-        LSM303DLHC_InitStruct.MagFull_Scale         = LSM303DLHC_FS_1_3_GA;
-        LSM303DLHC_InitStruct.MagTemperature        = LSM303DLHC_TEMPSENSOR_DISABLE;
+    MagnetometerDrv = &Lsm303dlhcMagDrv;
 
-        // Configure MEMS: power mode, data rate, scale and temperature
-        ctrl =  (uint16_t)(LSM303DLHC_InitStruct.MagTemperature | \
-                            LSM303DLHC_InitStruct.MagOutput_DataRate);
-        ctrl |= (uint16_t)(LSM303DLHC_InitStruct.Power_Mode << 8);
+    // Fill the Magneto paramter
+    LSM303DLHC_InitStruct.Power_Mode            = LSM303DLHC_CONTINUOS_CONVERSION;
+    LSM303DLHC_InitStruct.MagOutput_DataRate    = LSM303DLHC_ODR_15_HZ;
+    LSM303DLHC_InitStruct.MagFull_Scale         = LSM303DLHC_FS_1_3_GA;
+    LSM303DLHC_InitStruct.MagTemperature        = LSM303DLHC_TEMPSENSOR_DISABLE;
 
-        gain = LSM303DLHC_InitStruct.MagFull_Scale;
+    // Configure MEMS: power mode, data rate, scale and temperature
+    ctrl =  (uint16_t)(LSM303DLHC_InitStruct.MagTemperature | \
+                        LSM303DLHC_InitStruct.MagOutput_DataRate);
 
-        // Configure MAGNETO paramter
-        MagnetometerDrv->Init(ctrl, gain);
+    ctrl |= (uint16_t)(LSM303DLHC_InitStruct.Power_Mode << 8);
 
-        ret = MAGNETO_OK;
-    }
+    gain = LSM303DLHC_InitStruct.MagFull_Scale;
+
+    // Configure MAGNETO paramter
+    MagnetometerDrv->Init(ctrl, gain);
+    ret = MAGNETO_OK;
 
     return ret;
 }
@@ -325,7 +313,7 @@ uint8_t BSP_Magneto_ReadID(void)
 /**
   * @brief  Get XYZ axes magnetometer.
   * @param  pDataXYZ: Pointer to 3 angular magnetometer axes.  
-  *                   pDataXYZ[0] = X axis, pDataXYZ[1] = Z axis, pDataXYZ[2] = Y axis
+  *                   pDataXYZ[0] = X axis, pDataXYZ[1] = Y axis, pDataXYZ[2] = Z axis
   */
 void BSP_Magneto_GetXYZ(float *mDataXYZ)
 {
