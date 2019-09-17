@@ -6,6 +6,7 @@
  */
 
 #include "l3gd20.h"
+#include "IMU_Utils.h"
 
 // Mapping Function Pointer
 GYRO_DrvTypeDef L3gd20Drv =
@@ -302,6 +303,6 @@ void L3GD20_ReadXYZAngRate(float *pfData)
     /* Divide by sensitivity */
     for(i=0; i<3; i++)
     {
-        pfData[i]=(float)(RawData[i] * sensitivity);
+        pfData[i]=(float)(RawData[i] * sensitivity * CONVERT_TO_SI * SENSORS_DPS_TO_RADS);
     }
 }

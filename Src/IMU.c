@@ -24,9 +24,9 @@ uint8_t BSP_Accelero_Init(void)
     ACCELERO_FilterConfigTypeDef    LSM303DLHC_FilterStruct;
 
     /**
-     * TODO: LSM303DLHC doesn't have WHO_I_AM register. So we can't check ID sensor with ReadID function.
-     * Default return value is ACCELERO_OK
-     * if(Lsm303dlhcAccDrv.ReadID() == I_AM_LMS303DLHC_ACC)
+     * TODO: LSM303DLHC doesn't have WHO_AM_I register. So we can't check ID sensor with ReadID function.
+     * Default: value of return is ACCELERO_OK
+     * if(Lsm303dlhcAccDrv.ReadID() == I_AM_LMS303DLHC)
      */
 
     // Initialize the Accelerometer driver structure
@@ -268,8 +268,8 @@ uint8_t BSP_Magneto_Init(void)
 
     /**
      * TODO: LSM303DLHC doesn't have WHO_AM_I register. So we can't check ID sensor with GetID function
-     * Default return value is MAGNETO_OK
-     * if(Lsm303dlhcMagDrv.ReadID() == I_AM_LMS303DLHC_MAG)
+     * Default: value of return is MAGNETO_OK
+     * if(Lsm303dlhcMagDrv.ReadID() == I_AM_LMS303DLHC)
      */
 
     MagnetometerDrv = &Lsm303dlhcMagDrv;

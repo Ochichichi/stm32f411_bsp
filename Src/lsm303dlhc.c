@@ -7,18 +7,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "lsm303dlhc.h"
-#include "main.h"
+#include "IMU_Utils.h"
 
-/* Constants */
-#define SENSORS_GRAVITY_EARTH             (9.80665F)              /**< Earth's gravity in m/s^2 */
-#define SENSORS_GRAVITY_MOON              (1.6F)                  /**< The moon's gravity in m/s^2 */
-#define SENSORS_GRAVITY_SUN               (275.0F)                /**< The sun's gravity in m/s^2 */
-#define SENSORS_GRAVITY_STANDARD          (SENSORS_GRAVITY_EARTH)
-#define SENSORS_MAGFIELD_EARTH_MAX        (60.0F)                 /**< Maximum magnetic field on Earth's surface */
-#define SENSORS_MAGFIELD_EARTH_MIN        (30.0F)                 /**< Minimum magnetic field on Earth's surface */
-#define SENSORS_PRESSURE_SEALEVELHPA      (1013.25F)              /**< Average sea level pressure is 1013.25 hPa */
-#define SENSORS_DPS_TO_RADS               (0.017453293F)          /**< Degrees/s to rad/s multiplier */
-#define SENSORS_GAUSS_TO_MICROTESLA       (100)                   /**< Gauss to micro-Tesla multiplier */
 
 // Default Magneto gauss
 static uint16_t _LSM303DLHC_Mag_Gauss_LSB_XY   = LSM303DLHC_M_SENSITIVITY_XY_1_3Ga;
@@ -176,7 +166,6 @@ void LSM303DLHC_AccReadXYZ(float *pData)
 
     // Read the acceleration control register content
     ctrlx[0] = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_CTRL_REG4_A);
-    ctrlx[1] = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_CTRL_REG5_A);
 
     // Read the ouput register X, Y & Z acceleration
     buffer[0] = LSM303DLHC_IO_Read(ACC_I2C_ADDRESS, LSM303DLHC_OUT_X_L_A);
@@ -222,7 +211,7 @@ void LSM303DLHC_AccReadXYZ(float *pData)
     // Obtain the mg value for three axis
     for(i=0; i < 3; i++)
     {
-        pData[i] = ((float)pnRawData[i] * sensitivity /* *SENSORS_GRAVITY_STANDARD */);
+        pData[i] = ((float)pnRawData[i] * sensitivity * CONVERT_TO_SI * SENSORS_GRAVITY_STANDARD);
     }
 }
 
@@ -610,7 +599,7 @@ void LSM303DLHC_MagReadXYZ(float *pData)
     // Obtain the value for three axis
     pData[0] = (float)pnRawData[0] / _LSM303DLHC_Mag_Gauss_LSB_XY * SENSORS_GAUSS_TO_MICROTESLA; // magneto.x
     pData[1] = (float)pnRawData[1] / _LSM303DLHC_Mag_Gauss_LSB_XY * SENSORS_GAUSS_TO_MICROTESLA; // magneto.y
-    pData[2] = (float)pnRawData[2] / _LSM303DLHC_Mag_Gauss_LSB_Z * SENSORS_GAUSS_TO_MICROTESLA; // // magneto.z
+    pData[2] = (float)pnRawData[2] / _LSM303DLHC_Mag_Gauss_LSB_Z * SENSORS_GAUSS_TO_MICROTESLA; // magneto.z
 }
 /**
   * @brief  Read temperature Magnetometer values 
