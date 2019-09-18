@@ -81,7 +81,7 @@
 
 // High_Pass_Filter_status 
 #define L3GD20_HIGHPASSFILTER_DISABLE      ((uint8_t)0x00)
-#define L3GD20_HIGHPASSFILTER_ENABLE	     ((uint8_t)0x10)
+#define L3GD20_HIGHPASSFILTER_ENABLE	   ((uint8_t)0x10)
 
 // INT1_INT2_selection 
 #define L3GD20_INT1                        ((uint8_t)0x00)
@@ -104,7 +104,6 @@
 #define L3GD20_BOOT_REBOOTMEMORY           ((uint8_t)0x80)
 
 // High_Pass_Filter_Mode 
-
 #define L3GD20_HPM_NORMAL_MODE_RES         ((uint8_t)0x00)
 #define L3GD20_HPM_REF_SIGNAL              ((uint8_t)0x10)
 #define L3GD20_HPM_NORMAL_MODE             ((uint8_t)0x20)
