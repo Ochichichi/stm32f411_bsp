@@ -21,6 +21,8 @@
 /* Private includes ----------------------------------------------------------*/
 #include "IMU.h"
 #include "led.h"
+#include "algo.h"
+
 #include <stdio.h>
 /* Private typedef -----------------------------------------------------------*/
 
@@ -32,6 +34,7 @@
 float accData[3];
 float gyroData[3];
 float magData[3];
+float pitch, roll;
 
 __IO uint8_t flag_ms = RESET;
 
@@ -60,35 +63,21 @@ int main(void)
     log_info("Configured Serial Port !!!\r\n");
 
     /* Init on-board IMU */
-    log_info("Initializing Accelerometer ...\r\n");
-    BSP_Accelero_Init();
-    BSP_Magneto_Init();
-    log_info("Configured LSM303DLHC sensor\r\n");
-
-    log_info("Initializing Gyroscope ...\r\n");
-    if(BSP_Gyro_Init() != GYRO_OK)
-    {
-        log_error("Failed to configure L3GD20 Sensor\r\n");
-        Error_Handler();
-    }
-    log_info("Configured L3GD20 Sensor\r\n");
+    IMU_HWSetup();
 
     while(1) {
-        BSP_Accelero_GetXYZ(accData);
-        BSP_Magneto_GetXYZ(magData);
-        BSP_Gyro_GetXYZ(gyroData);
+        Complementary_Filter(accData, gyroData, &pitch, &roll);
 
         if(flag_ms == SET)
         {
-            log_debug("accX: %.2f\r\n", accData[0]);
-            log_debug("accY: %.2f\r\n", accData[1]);
-            log_debug("accZ: %.2f\r\n", accData[2]);
-            log_debug("magX: %.2f\r\n", magData[0]);
-            log_debug("magY: %.2f\r\n", magData[1]);
-            log_debug("magZ: %.2f\r\n", magData[2]);
-            log_debug("gyroX: %.2f\r\n", gyroData[0]);
-            log_debug("gyroY: %.2f\r\n", gyroData[1]);
-            log_debug("gyroZ: %.2f\r\n", gyroData[2]);
+            // log_debug("accX: %.2f\r\n", accData[0]);
+            // log_debug("accY: %.2f\r\n", accData[1]);
+            // log_debug("accZ: %.2f\r\n", accData[2]);
+            // log_debug("gyroX: %.2f\r\n", gyroData[0]);
+            // log_debug("gyroY: %.2f\r\n", gyroData[1]);
+            // log_debug("gyroZ: %.2f\r\n", gyroData[2]);
+            log_debug("pitch: %.2f\r\n", pitch);
+            log_debug("roll: %.2f\r\n", roll);
             flag_ms = RESET;
         }
     }

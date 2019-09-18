@@ -2,6 +2,7 @@
 #define __ALGO_H_
 
 #include "IMU.h"
+#include "IMU_Utils.h"
 
 void IMU_HWSetup(void);
 void Acc_UpdateXYZ(float accData[3]);
