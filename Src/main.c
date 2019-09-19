@@ -34,7 +34,7 @@
 float accData[3];
 float gyroData[3];
 float magData[3];
-float pitch, roll;
+float pitch, roll, yaw;
 
 __IO uint8_t flag_ms = RESET;
 
@@ -66,19 +66,15 @@ int main(void)
     IMU_HWSetup();
 
     while(1) {
-        Complementary_Filter(accData, gyroData, &pitch, &roll);
+        Update_PitchRollYaw(accData, gyroData, magData, &pitch, &roll, &yaw);
 
         if(flag_ms == SET)
         {
-            // log_debug("accX: %.2f\r\n", accData[0]);
-            // log_debug("accY: %.2f\r\n", accData[1]);
-            // log_debug("accZ: %.2f\r\n", accData[2]);
-            // log_debug("gyroX: %.2f\r\n", gyroData[0]);
-            // log_debug("gyroY: %.2f\r\n", gyroData[1]);
-            // log_debug("gyroZ: %.2f\r\n", gyroData[2]);
-            log_debug("pitch: %.2f\r\n", pitch);
-            log_debug("roll: %.2f\r\n", roll);
+            // log_debug("pitch: %.2f\r\n", pitch);
+            // log_debug("roll: %.2f\r\n", roll);
+            // log_debug("yaw: %.2f\r\n", yaw);
             flag_ms = RESET;
+            printf("%3.4f,%3.4f,%3.4f\n", pitch, roll , yaw);
         }
     }
 }

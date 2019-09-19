@@ -11,8 +11,13 @@
 
 float AccX_offset = 0, AccY_offset = 0, AccZ_offset = 0;
 float GyroX_offset = 0, GyroY_offset = 0, GyroZ_offset = 0;
+float MagX_min = 0, MagY_min = 0, MagZ_min = 0;
+float MagX_max = 0, MagY_max = 0, MagZ_max = 0;
 
 float elapsedTime, time, timePrev;
+float old_MagData[3] = {0,0,0};
+
+void IMU_Calibration(void);
 
 void IMU_HWSetup(void)
 {
@@ -27,8 +32,9 @@ void IMU_HWSetup(void)
     {
         log_error("Failed to configure L3GD20 Sensor\r\n");
     }
-    time = HAL_GetTick();
     log_info("Configured L3GD20 Sensor\r\n");
+    // IMU_Calibration();
+    time = HAL_GetTick();
 }
 
 void Acc_GetOffset(void)
@@ -63,6 +69,22 @@ void Gyro_GetOffset(void)
     GyroZ_offset = GyroZ_offset / 200;
 }
 
+void Mag_GetOffset(void)
+{
+    float magData[3];
+
+    for(uint8_t i=0; i<200; i++)
+    {
+        BSP_Magneto_GetXYZ(magData);
+        if (magData[0] < MagX_min) MagX_min = magData[0];
+        if (magData[0] > MagX_max) MagX_max = magData[0];
+        if (magData[1] < MagY_min) MagY_min = magData[1];
+        if (magData[1] > MagY_max) MagY_max = magData[1];
+        if (magData[2] < MagZ_min) MagZ_min = magData[2];
+        if (magData[2] > MagZ_max) MagZ_max = magData[2];
+    }
+}
+
 void Acc_UpdateXYZ(float accData[3])
 {
     BSP_Accelero_GetXYZ(accData);
@@ -84,34 +106,51 @@ void Gyro_UpdateXYZ(float gyroData[3])
     gyroData[2] -= GyroZ_offset;
 }
 
+void Mag_UpdateXYZ(float magData[3])
+{
+    BSP_Gyro_GetXYZ(magData);
+    magData[0] -= (MagX_min + MagX_max) / 2 ;
+    magData[1] -= (MagY_min + MagY_max) / 2 ;
+    magData[2] -= (MagZ_min + MagZ_max) / 2 ;
+}
 
-void Complementary_Filter(float accData[3], float gyroData[3], float *pitch, float *roll)
+void IMU_Calibration(void)
+{
+    Acc_GetOffset();
+    Gyro_GetOffset();
+    Mag_GetOffset();
+}
+
+void Update_PitchRollYaw(float accData[3], float gyroData[3], float magData[3], float *pitch, float *roll, float *yaw)
 {
     float pitchAcc, rollAcc, pitchGyro, rollGyro;
+    static float yawGyro = 0;
 
     // Update value from Accelerometer
     Acc_UpdateXYZ(accData);
+
     // Update value from Gyroscope
     Gyro_UpdateXYZ(gyroData);
 
     // Calculate the angles from the gyro
-    pitchGyro = gyroData[0]*elapsedTime; // Angle round the X-Axis
-    rollGyro  = gyroData[1]*elapsedTime; // Angle round the y-Axis
+    pitchGyro = gyroData[0] * elapsedTime; // Angle round the X-Axis
+    rollGyro  = gyroData[1] * elapsedTime; // Angle round the y-Axis
+    yawGyro   = yawGyro + gyroData[2] * elapsedTime;
 
     // Calculate the angles from the acc
     pitchAcc = (atan2(accData[1], accData[2]) + PI) * RAD_TO_DEG;
     rollAcc  = (atan2(accData[2], accData[0]) + PI) * RAD_TO_DEG;
 
-    //If IMU is up the correct way, use these lines
+    // If IMU is up the correct way, use these lines
     pitchAcc -= (float)180.0;
     if (rollAcc > 90)
         rollAcc -= (float)270;
     else {
         rollAcc += (float)90;
     }
-    
-    //Complementary filter used to combine the 
-    // accelerometer and gyro values.
+
+    // Complementary filter used to combine the accelerometer and gyro values.
     *pitch = 0.97*(*pitch + pitchGyro) + 0.03*pitchAcc;
     *roll  = 0.97*(*roll  + rollGyro) + 0.03*rollAcc;
+    *yaw   =  yawGyro * RAD_TO_DEG;
 }
